@@ -1,8 +1,7 @@
 module Main where
 
-import Test.Framework (defaultMain)
-
 import qualified Bippy.Tests (tests)
+import Test.Framework (defaultMain)
 
 main :: IO ()
 main = defaultMain Bippy.Tests.tests

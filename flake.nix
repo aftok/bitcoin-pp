@@ -11,20 +11,20 @@
     nixpkgs,
     flake-utils,
   }: let
-    overlay = final: prev: let
-      jailbreakUnbreak = pkg:
-        final.haskell.lib.doJailbreak (pkg.overrideAttrs (_: {meta = {};}));
+    pkg-name = "bippy";
+    haskell-overlay = hfinal: hprev: {
+      ${pkg-name} = hfinal.callCabal2nix pkg-name ./. {};
+    };
 
-      dontCheck = pkg: final.haskell.lib.dontCheck pkg;
-
-      haskell-overlay = hfinal: hprev: {
-      };
-    in {
+    overlay = final: prev: {
       haskellPackages = prev.haskellPackages.extend haskell-overlay;
     };
-  in
-    flake-utils.lib.eachDefaultSystem (
-      system: let
+  in {
+      overlays = {
+        default = overlay;
+      };
+    } //
+    flake-utils.lib.eachDefaultSystem (system: let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [overlay];
@@ -33,18 +33,16 @@
         hspkgs = pkgs.haskellPackages;
       in {
         packages = {
-          bippy = hspkgs.callCabal2nix "bippy" ./. {};
+          bippy = hspkgs.bippy;
           default = self.packages.${system}.bippy;
         };
 
         devShells = {
-          default = pkgs.mkShell {
+          default = hspkgs.shellFor {
+            packages = _: [self.packages.${system}.bippy];
             buildInputs = [
+              pkgs.cabal-install
               hspkgs.ormolu
-            ];
-            nativeBuildInputs = [
-              pkgs.binutils
-              pkgs.secp256k1
             ];
             inputsFrom = builtins.attrValues self.packages.${system};
           };

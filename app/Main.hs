@@ -1,31 +1,27 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Main where
 
---import Options.Applicative
+-- import Options.Applicative
 
+import Bippy
+import qualified Bippy.Proto as P
+import Bippy.Types
 import Control.Monad.Except
-import Crypto.PubKey.RSA.Types (Error(..))
+import Crypto.PubKey.RSA.Types (Error (..))
 import Crypto.Random.Types (MonadRandom, getRandomBytes)
-
 import qualified Data.ByteString as B
 import Data.Maybe (fromJust)
 import Data.ProtocolBuffers (encodeMessage)
 import Data.Serialize.Put
 import Data.Time.Clock
 import Data.X509
-import Data.X509.File (readSignedObject, readKeyFile)
-
-import Bippy
-import Bippy.Types
-import qualified Bippy.Proto as P
-
+import Data.X509.File (readKeyFile, readSignedObject)
+import Haskoin.Address (Address (..), addrToText, addressToOutput, textToAddr)
 import Haskoin.Constants (btcTest)
-import Haskoin.Address (Address(..), textToAddr, addrToText, addressToOutput)
 import Haskoin.Util.Arbitrary.Crypto (arbitraryHash160)
-
 import Test.QuickCheck
 
 main :: IO ()
@@ -35,7 +31,7 @@ main = do
 
   either (putStrLn . show) pure =<< (runExceptT . runBippyM) writeSample1
 
-newtype BippyM e a = BippyM { runBippyM :: ExceptT e IO a }
+newtype BippyM e a = BippyM {runBippyM :: ExceptT e IO a}
   deriving (Functor, Applicative, Monad)
 
 instance MonadRandom (BippyM e) where
@@ -68,7 +64,8 @@ writeSample1 = do
 
   paymentRequest <- BippyM . ExceptT $ createPaymentRequest privKey pkiData paymentDetails
   liftIO $ B.writeFile "work/sample1.bitcoinpaymentrequest" . runPut $ encodeMessage paymentRequest
-  -- write to payment request file
+
+-- write to payment request file
 
 sourceAddr :: Address
 sourceAddr = fromJust $ textToAddr btcTest "mmaFdFShk82G84DaccdqEvUCrMmSAAixJs"
@@ -83,11 +80,11 @@ sample1 :: UTCTime -> P.PaymentDetails
 sample1 sampleTime =
   createPaymentDetails
     btcTest
-    [ Output (Satoshi 10000) (addressToOutput recipient1)
-    , Output (Satoshi 20000) (addressToOutput recipient2)
+    [ Output (Satoshi 10000) (addressToOutput recipient1),
+      Output (Satoshi 20000) (addressToOutput recipient2)
     ]
     sampleTime
-    Nothing Nothing Nothing Nothing
-
-
-
+    Nothing
+    Nothing
+    Nothing
+    Nothing

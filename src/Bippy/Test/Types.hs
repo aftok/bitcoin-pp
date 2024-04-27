@@ -1,15 +1,14 @@
 module Bippy.Test.Types
-( arbitrarySatoshi
-, arbitraryOutput
-) where
+  ( arbitrarySatoshi,
+    arbitraryOutput,
+  )
+where
 
-import           Bippy.Types              (Satoshi(..), Output(..))
-import qualified Haskoin.Constants                  as H
+import Bippy.Types (Output (..), Satoshi (..))
+import qualified Haskoin.Constants as H
+import qualified Haskoin.Util.Arbitrary.Script as H
 import qualified Haskoin.Util.Arbitrary.Transaction as H
-import qualified Haskoin.Util.Arbitrary.Script      as H
-
-import           Test.QuickCheck                  (Gen)
-
+import Test.QuickCheck (Gen)
 
 arbitrarySatoshi :: H.Network -> Gen Satoshi
 arbitrarySatoshi = fmap (Satoshi . H.getTestCoin) . H.arbitrarySatoshi
